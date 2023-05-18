@@ -3,21 +3,17 @@ import { FileUploader } from "react-drag-drop-files";
 import { Text, Dropdown } from '@fluentui/react-northstar';
 import axios from 'axios'
 
-//const cogsearchLabel = "cogsearch"
 const pipelinesLabel = "pipelines"
 
 function Upload(props) {
-    const fileTypes = ["PNG", "JPG", "PDF", "BMP", "WAV", "MP3", "JPEG", "TIFF", "XML", "MP4","TIF"];
+    const fileTypes = ["PNG", "JPG", "PDF", "BMP", "WAV", "MP3", "JPEG", "TIFF", "XML", "MP4", "TIF", "PPT", "TXT", "DOC", "DOCX", "PPTX"];
 
     const [image, setImage] = useState(null);
     const [show, setShow] = useState(false);
     const [showFail, setShowFail] = useState(false);
-    //const [isCogSearch, setIsCogSearch] = useState(false)
-    //const [rerender, setRerender] = useState(0)
     const [pipelineNames, setPipelineNames] = useState([])
     const [selectedPipelineName, setSelectedPipelineName] = useState("")
     const [queueStatus, setQueueStatus] = useState(null)
-
 
     useEffect(() => {
         try {
@@ -35,14 +31,6 @@ function Upload(props) {
             }, 5000)
 
 
-            // axios.get(`/api/config?id=${cogsearchLabel}`).then(value => {
-            //     if (value?.data?.createSkill) {
-            //         setIsCogSearch(value.data.createSkill)
-            //     } else {
-            //         setIsCogSearch(false)
-            //     }
-            // })
-
             axios.get(`/api/config?id=${pipelinesLabel}`).then(value => {
                 if (value?.data?.pipelines) {
                     const names = []
@@ -58,15 +46,6 @@ function Upload(props) {
             console.log(err)
         }
     }, [])
-
-    // const onCogSearchClick = async (event) => {
-    //     try {
-    //         await axios.post('/api/config', { createSkill: !isCogSearch, id: cogsearchLabel })
-    //     } catch (err) {
-    //         console.log(err)
-    //     }
-    //     setRerender(rerender + 1)
-    // }
 
     const onDropDownChange = (event, selected) => {
         setSelectedPipelineName(selected.value)
@@ -96,18 +75,12 @@ function Upload(props) {
         }
     }
 
-    const getContent = () => {
-        let count = 0
-        if (queueStatus && queueStatus.count) {
-            count = queueStatus.count
-        }
-        return `Total Document Count In Database: ${count}`
-    }
-
     const tableCellStyle = { backgroundColor: "white", borderStyle: "solid", borderWidth: "1px", textAlign: "left" }
 
     const getQueuedFiles = () => {
+
         if (queueStatus && queueStatus.messages.queuedFiles) {
+            console.log(JSON.stringify(queueStatus.messages))
             if (queueStatus.messages.queuedFiles.length > 0) {
                 return (
                     <table>
@@ -115,59 +88,47 @@ function Upload(props) {
                             <td style={tableCellStyle}>Filename</td>
                             <td style={tableCellStyle}>State</td>
                             <td style={tableCellStyle}>Is Async Transaction</td>
+                            <td style={tableCellStyle}>Pipeline</td>
+                            <td style={tableCellStyle}>Type</td>
+                            <td style={tableCellStyle}>Label</td>
                         </tr>
                         {queueStatus.messages.queuedFiles.map(f => {
                             return (
                                 <tr>
                                     <td style={tableCellStyle}>{f.filename}</td>
-                                    <td style={tableCellStyle}>{f.state}</td>
-                                    <td style={tableCellStyle}>{f.isAsync.toString()}</td>
+                                    <td style={tableCellStyle}>{f.state ? f.state : "n/a"}</td>
+                                    <td style={tableCellStyle}>{f.isAsync ? f.isAsync.toString() : "n/a"}</td>
+                                    <td style={tableCellStyle}>{f.pipeline ? f.pipeline : "n/a"}</td>
+                                    <td style={tableCellStyle}>{f.type ? f.type : "n/a"}</td>
+                                    <td style={tableCellStyle}>{f.label ? f.label : "n/a"}</td>
                                 </tr>
                             )
                         })}
-
-
                     </table>
                 )
-                // <ul>
-                //     {queueStatus.messages.queuedFiles.map(m => {
-                //         if (m?.filename) {
-                //             return (<>1</>)
-                //         } else {
-                //             return (<>2</>)
-                //         }
-                //     })}
-
-                // </ul>
-                //)
             }
-
-
-
         }
     }
 
     const getQueueStatus = () => {
         if (queueStatus?.messages?.queueProperties) {
             return (
-                <table style={{ marginBottom: "30px" }}>
-                    <tr>
-                        <td style={tableCellStyle}>Active</td>
-                        <td style={tableCellStyle}>Scheduled</td>
-                        <td style={tableCellStyle}>Dead Letter</td>
-                        <td style={tableCellStyle}>Transfer</td>
-                        <td style={tableCellStyle}>Transfer Dead-Letter</td>
-                    </tr>
-                    <tr>
-                        <td style={tableCellStyle}>{queueStatus.messages.queueProperties.activeMessageCount}</td>
-                        <td style={tableCellStyle}>{queueStatus.messages.queueProperties.scheduledMessageCount}</td>
-                        <td style={tableCellStyle}>{queueStatus.messages.queueProperties.deadLetterMessageCount}</td>
-                        <td style={tableCellStyle}>{queueStatus.messages.queueProperties.transferMessageCount}</td>
-                        <td style={tableCellStyle}>{queueStatus.messages.queueProperties.transferDeadLetterMessageCount}</td>
-                    </tr>
+                <>
+                    <Text weight="semibold" content="Request Queue" style={{ fontSize: "15px", display: "block", width: "100%", marginBottom: "20px", marginTop: "40px" }} />
+                    <table style={{ marginBottom: "30px" }}>
+                        <tr>
+                            <td style={tableCellStyle}>Active</td>
+                            <td style={tableCellStyle}>Scheduled</td>
+                            <td style={tableCellStyle}>Failed</td>
+                        </tr>
+                        <tr>
+                            <td style={tableCellStyle}>{queueStatus.messages.queueProperties.activeMessageCount}</td>
+                            <td style={tableCellStyle}>{queueStatus.messages.queueProperties.scheduledMessageCount}</td>
+                            <td style={tableCellStyle}>{queueStatus.messages.queueProperties.deadLetterMessageCount}</td>
+                        </tr>
 
-                </table>
-                // <Text weight="semibold" content="Empty" style={{ fontSize: "15px", display: "block", width: "100%", marginBottom: "20px" }} />
+                    </table>
+                </>
             )
         }
 
@@ -177,20 +138,30 @@ function Upload(props) {
         <div style={{ paddingTop: "50px" }}>
             <Text weight="semibold" content="Upload a document to Blob Storage" style={{ fontSize: "18px", display: "block", width: "100%", marginBottom: "20px" }} />
             <p style={{ marginBottom: "20px" }} >Before any insights can be viewed by a pattern, one or more documents must be uploaded.  The documents will be copied to Blob Storage which will trigger a Function App to process them.  The processing can take some time and the insights will not appear immediately.</p>
-            <Text weight="semibold" content="Select Pipeline to Test" style={{ fontSize: "15px", display: "block", width: "100%", marginBottom: "20px" }} />
-            <Dropdown
-                search
-                placeholder="Select the Pipeline"
-                label="Output"
-                items={pipelineNames}
-                onChange={onDropDownChange}
-                style={{ paddingBottom: "40px" }}
-            />
+            <div>
+                <div style={{ marginBottom: "10px" }}>
+                    <Text weight="semibold" content="Select A Pipeline" style={{ fontSize: "15px", width: "100%", marginBottom: "20px" }} />
+                </div>
+                <Dropdown
+                    search
+                    placeholder="Select the Pipeline"
+                    label="Output"
+                    items={pipelineNames}
+                    onChange={onDropDownChange}
+                    style={{ paddingBottom: "40px" }}
+                />
+            </div>
+            <div style={{ display: "flex", flexDirection: "row" }}>
 
-            <FileUploader handleChange={handleChange} name="file" types={fileTypes} />
-            {/* <Checkbox onClick={onCogSearchClick} checked={isCogSearch} style={{ paddingTop: "20px", marginBottom: "20px" }} label="Create a Cognitive Search Data Source with the output of this document.  Sending more than one document while enabled will generate errors once the Data Source exists." /> */}
-            <Text weight="semibold" content={getContent()} style={{ fontSize: "15px", display: "block", width: "100%", marginBottom: "20px" }} />
-            {/* <Text weight="semibold" content="Queued Files Remaining To Be Processed: " style={{ fontSize: "15px", display: "block", width: "100%", marginBottom: "20px" }} /> */}
+
+                <div style={{ marginRight: "30px" }}>
+                    <div style={{ marginBottom: "10px" }}>
+                        <Text weight="semibold" content="Upload A Single Document" style={{ fontSize: "15px", width: "100%", marginBottom: "20px" }} />
+                    </div>
+                    <FileUploader handleChange={handleChange} name="file" types={fileTypes} />
+                </div>
+            </div>
+            {/* <Text weight="semibold" content={getContent()} style={{ fontSize: "15px", display: "block", width: "100%", marginBottom: "20px", marginTop: "40px" }} /> */}
 
             {getQueueStatus()}
             {getQueuedFiles()}
